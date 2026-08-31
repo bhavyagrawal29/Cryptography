@@ -4,139 +4,155 @@ public class AdditiveCipher {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        String choice = "";
+        int choice = 0;
 
-        while (true) {
-            System.out.println("\n========== ADDITIVE CIPHER MENU ==========");
+        System.out.println("Welcome to the Additive Cipher Program!");
+
+        while (choice != 4) {
+            System.out.println("\n--- Menu ---");
             System.out.println("1. Encryption");
             System.out.println("2. Decryption");
             System.out.println("3. Brute force");
             System.out.println("4. Exit");
-            System.out.print("Choose an option (1-4): ");
-            
-            choice = scanner.nextLine();
+            System.out.print("Enter your choice (1-4): ");
 
-            if (choice.equals("1")) {
-                encrypt(scanner);
-            } else if (choice.equals("2")) {
-                decrypt(scanner);
-            } else if (choice.equals("3")) {
-                bruteForce(scanner);
-            } else if (choice.equals("4")) {
-                System.out.println("Exiting the program. Goodbye!");
-                break; // This is the ONLY way to exit the loop
+            choice = scanner.nextInt();
+            scanner.nextLine();
+
+            if (choice == 1) {
+                String plaintext = "";
+                
+                while (true) {
+                    System.out.print("Enter plaintext (lowercase only, no spaces): ");
+                    plaintext = scanner.nextLine();
+
+                    if (isLowercaseOnly(plaintext)) {
+                        break;
+                    } else {
+                        System.out.println("WARNING: You must use lowercase letters only! No uppercase, numbers, spaces, or symbols.");
+                    }
+                }
+
+                System.out.print("Enter key (number): ");
+                int key = scanner.nextInt();
+                scanner.nextLine();
+                
+                key = key % 26; 
+
+                String ciphertext = "";
+                
+                for (int i = 0; i < plaintext.length(); i++) {
+                    char letter = plaintext.charAt(i);
+                    
+                    int shifted = (letter - 'a' + key) % 26;
+                    
+                    char encryptedLetter = (char) (shifted + 'A');
+                    ciphertext = ciphertext + encryptedLetter;
+                }
+
+                System.out.println("Encrypted Result: " + ciphertext);
+
+            } else if (choice == 2) {
+                String ciphertext = "";
+                
+                while (true) {
+                    System.out.print("Enter ciphertext (UPPERCASE only, no spaces): ");
+                    ciphertext = scanner.nextLine();
+
+                    if (isUppercaseOnly(ciphertext)) {
+                        break;
+                    } else {
+                        System.out.println("WARNING: You must use UPPERCASE letters only! No lowercase, numbers, spaces, or symbols.");
+                    }
+                }
+
+                System.out.print("Enter key (number): ");
+                int key = scanner.nextInt();
+                scanner.nextLine();
+                
+                key = key % 26; 
+
+                String plaintext = "";
+                
+                for (int i = 0; i < ciphertext.length(); i++) {
+                    char letter = ciphertext.charAt(i);
+                    
+                    int shifted = (letter - 'A' - key) % 26;
+                    
+                    if (shifted < 0) {
+                        shifted = shifted + 26; 
+                    }
+                    
+                    char decryptedLetter = (char) (shifted + 'a');
+                    plaintext = plaintext + decryptedLetter;
+                }
+
+                System.out.println("Decrypted Result: " + plaintext);
+
+            } else if (choice == 3) {
+                String ciphertext = "";
+                
+                while (true) {
+                    System.out.print("Enter ciphertext to brute force (UPPERCASE only, no spaces): ");
+                    ciphertext = scanner.nextLine();
+
+                    if (isUppercaseOnly(ciphertext)) {
+                        break;
+                    } else {
+                        System.out.println("WARNING: You must use UPPERCASE letters only! No lowercase, numbers, spaces, or symbols.");
+                    }
+                }
+
+                System.out.println("\n--- Brute Force Results ---");
+                
+                for (int k = 1; k <= 25; k++) {
+                    String possiblePlaintext = "";
+                    
+                    for (int i = 0; i < ciphertext.length(); i++) {
+                        char letter = ciphertext.charAt(i);
+                        int shifted = (letter - 'A' - k) % 26;
+                        if (shifted < 0) {
+                            shifted = shifted + 26;
+                        }
+                        char decryptedLetter = (char) (shifted + 'a');
+                        possiblePlaintext = possiblePlaintext + decryptedLetter;
+                    }
+                    
+                    System.out.println("Key " + k + " gives: " + possiblePlaintext);
+                }
+
+            } else if (choice == 4) {
+                System.out.println("Exiting program... Goodbye!");
             } else {
-                System.out.println("Invalid choice. Please enter a number between 1 and 4.");
+                System.out.println("Invalid choice! Please choose 1, 2, 3, or 4.");
             }
         }
         
         scanner.close();
     }
 
-    public static void encrypt(Scanner scanner) {
-        String plainText = "";
+
+    public static boolean isLowercaseOnly(String text) {
+        if (text.length() == 0) return false;
         
-        while (true) {
-            System.out.print("Enter plaintext (lowercase letters only): ");
-            plainText = scanner.nextLine();
-
-            if (!plainText.equals(plainText.toLowerCase())) {
-                System.out.println("WARNING: Uppercase letters detected! Plaintext must be lowercase.");
-            } else {
-                break;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c < 'a' || c > 'z') {
+                return false; 
             }
         }
-
-        System.out.print("Enter the key (number): ");
-        int key = getValidKey(scanner);
-        key = key % 26;
-        String cipherText = "";
-
-        for (int i = 0; i < plainText.length(); i++) {
-            char ch = plainText.charAt(i);
-
-            if (ch >= 'a' && ch <= 'z') {
-                char shifted = (char) (((ch - 'a' + key) % 26) + 'A');
-                cipherText += shifted;
-            } else {
-                cipherText += ch;
-            }
-        }
-        System.out.println("Resulting Ciphertext: " + cipherText);
+        return true; 
     }
 
-    public static void decrypt(Scanner scanner) {
-        String cipherText = "";
+    public static boolean isUppercaseOnly(String text) {
+        if (text.length() == 0) return false; 
         
-        while (true) {
-            System.out.print("Enter ciphertext (uppercase letters only): ");
-            cipherText = scanner.nextLine();
-            
-            if (!cipherText.equals(cipherText.toUpperCase())) {
-                System.out.println("WARNING: Lowercase letters detected! Ciphertext must be uppercase.");
-            } else {
-                break;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c < 'A' || c > 'Z') {
+                return false;
             }
         }
-
-        System.out.print("Enter the key (number): ");
-        int key = getValidKey(scanner);
-        key = key % 26;
-
-        String plainText = "";
-
-        for (int i = 0; i < cipherText.length(); i++) {
-            char ch = cipherText.charAt(i);
-            
-            if (ch >= 'A' && ch <= 'Z') {
-                char shifted = (char) (((ch - 'A' - key + 26) % 26) + 'a');
-                plainText += shifted;
-            } else {
-                plainText += ch;
-            }
-        }
-        System.out.println("Resulting Plaintext: " + plainText);
-    }
-
-    public static void bruteForce(Scanner scanner) {
-        String cipherText = "";
-        
-        while (true) {
-            System.out.print("Enter ciphertext to brute force (uppercase letters only): ");
-            cipherText = scanner.nextLine();
-            
-            if (!cipherText.equals(cipherText.toUpperCase())) {
-                System.out.println("WARNING: Lowercase letters detected! Ciphertext must be uppercase.");
-            } else {
-                break;
-            }
-        }
-
-        System.out.println("\n--- Brute Force Results ---");
-        
-        for (int key = 0; key < 26; key++) {
-            String plainText = "";
-            
-            for (int i = 0; i < cipherText.length(); i++) {
-                char ch = cipherText.charAt(i);
-                
-                if (ch >= 'A' && ch <= 'Z') {
-                    char shifted = (char) (((ch - 'A' - key + 26) % 26) + 'a');
-                    plainText += shifted;
-                } else {
-                    plainText += ch;
-                }
-            }
-            System.out.println("Key " + key + ": " + plainText);
-        }
-    }
-    
-    public static int getValidKey(Scanner scanner) {
-        try {
-            return Integer.parseInt(scanner.nextLine());
-        } catch (Exception e) {
-            System.out.println("That wasn't a valid number! Defaulting key to 0.");
-            return 0;
-        }
+        return true;
     }
 }
