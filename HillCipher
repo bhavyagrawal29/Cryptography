@@ -1,0 +1,216 @@
+import java.util.Scanner;
+
+public class HillCipher {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        int choice = 0; 
+
+        System.out.println("Welcome to the 2x2 Hill Cipher Program!");
+
+        while (choice != 4) {
+            System.out.println("\n--- Menu ---");
+            System.out.println("1. Encryption");
+            System.out.println("2. Decryption");
+            System.out.println("3. Brute force");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice (1-4): ");
+
+            choice = scanner.nextInt();
+            scanner.nextLine(); // Fix the scanner bug
+
+            if (choice == 1) {
+               
+                String plaintext = "";
+                
+                while (true) {
+                    System.out.print("Enter plaintext (lowercase only, no spaces): ");
+                    plaintext = scanner.nextLine();
+
+                    if (isLowercaseOnly(plaintext)) {
+                        break;
+                    } else {
+                        System.out.println("WARNING: You must use lowercase letters only!");
+                    }
+                }
+
+              
+                if (plaintext.length() % 2 != 0) {
+                    plaintext = plaintext + "x";
+                    System.out.println("Notice: Added an 'x' to the end to make it an even number of letters.");
+                }
+
+                int k1, k2, k3, k4;
+                while (true) {
+                    System.out.println("Enter the 4 numbers for your 2x2 Key Matrix:");
+                    System.out.print("Top-Left number: ");
+                    k1 = scanner.nextInt();
+                    System.out.print("Top-Right number: ");
+                    k2 = scanner.nextInt();
+                    System.out.print("Bottom-Left number: ");
+                    k3 = scanner.nextInt();
+                    System.out.print("Bottom-Right number: ");
+                    k4 = scanner.nextInt();
+                    scanner.nextLine();
+
+                    k1 = ((k1 % 26) + 26) % 26;
+                    k2 = ((k2 % 26) + 26) % 26;
+                    k3 = ((k3 % 26) + 26) % 26;
+                    k4 = ((k4 % 26) + 26) % 26;
+
+                    if (isValidMatrix(k1, k2, k3, k4)) {
+                        break;
+                    } else {
+                        System.out.println("WARNING: Invalid matrix! The matrix determinant cannot be zero, even, or 13. Try different numbers.");
+                    }
+                }
+
+                String ciphertext = "";
+                
+                for (int i = 0; i < plaintext.length(); i += 2) {
+                    // Get the two letters and turn them into numbers (0-25)
+                    int p1 = plaintext.charAt(i) - 'a';
+                    int p2 = plaintext.charAt(i + 1) - 'a';
+                    
+                    // Math logic: Matrix Multiplication
+                    int c1 = (k1 * p1 + k2 * p2) % 26;
+                    int c2 = (k3 * p1 + k4 * p2) % 26;
+                    
+                    // Turn them back into UPPERCASE letters
+                    ciphertext = ciphertext + (char)(c1 + 'A') + (char)(c2 + 'A');
+                }
+
+                System.out.println("Encrypted Result: " + ciphertext);
+
+            } else if (choice == 2) {
+
+                String ciphertext = "";
+                
+                while (true) {
+                    System.out.print("Enter ciphertext (UPPERCASE only, even number of letters): ");
+                    ciphertext = scanner.nextLine();
+
+                    if (!isUppercaseOnly(ciphertext)) {
+                        System.out.println("WARNING: You must use UPPERCASE letters only!");
+                    } else if (ciphertext.length() % 2 != 0) {
+                        System.out.println("WARNING: Hill ciphertext MUST have an even number of letters!");
+                    } else {
+                        break;
+                    }
+                }
+
+                int k1, k2, k3, k4;
+                while (true) {
+                    System.out.println("Enter the 4 numbers for your original 2x2 Key Matrix:");
+                    System.out.print("Top-Left: ");
+                    k1 = scanner.nextInt();
+                    System.out.print("Top-Right: ");
+                    k2 = scanner.nextInt();
+                    System.out.print("Bottom-Left: ");
+                    k3 = scanner.nextInt();
+                    System.out.print("Bottom-Right: ");
+                    k4 = scanner.nextInt();
+                    scanner.nextLine();
+                    
+                    k1 = ((k1 % 26) + 26) % 26;
+                    k2 = ((k2 % 26) + 26) % 26;
+                    k3 = ((k3 % 26) + 26) % 26;
+                    k4 = ((k4 % 26) + 26) % 26;
+
+                    if (isValidMatrix(k1, k2, k3, k4)) {
+                        break;
+                    } else {
+                        System.out.println("WARNING: Invalid matrix! The matrix determinant cannot be zero, even, or 13.");
+                    }
+                }
+
+                int det = getDeterminant(k1, k2, k3, k4);
+                int invDet = findInverseKey(det);
+                
+                int invK1 = (k4 * invDet) % 26;
+                int invK2 = (-k2 * invDet) % 26;
+                int invK3 = (-k3 * invDet) % 26;
+                int invK4 = (k1 * invDet) % 26;
+                
+                invK1 = ((invK1 % 26) + 26) % 26;
+                invK2 = ((invK2 % 26) + 26) % 26;
+                invK3 = ((invK3 % 26) + 26) % 26;
+                invK4 = ((invK4 % 26) + 26) % 26;
+
+                String plaintext = "";
+                
+                for (int i = 0; i < ciphertext.length(); i += 2) {
+                    int c1 = ciphertext.charAt(i) - 'A';
+                    int c2 = ciphertext.charAt(i + 1) - 'A';
+                    
+                    int p1 = (invK1 * c1 + invK2 * c2) % 26;
+                    int p2 = (invK3 * c1 + invK4 * c2) % 26;
+                    
+                    plaintext = plaintext + (char)(p1 + 'a') + (char)(p2 + 'a');
+                }
+
+                System.out.println("Decrypted Result: " + plaintext);
+
+            } else if (choice == 3) {
+                System.out.println("\n--- Brute Force Warning ---");
+                System.out.println("The Hill Cipher requires a 4-number key for a 2x2 matrix.");
+                System.out.println("Because each number can be 0 through 25, there are 26^4 possible keys.");
+                System.out.println("That equals 456,976 possible matrix combinations!");
+                System.out.println("Printing almost half a million lines would crash this console.");
+                System.out.println("Brute forcing this requires known-plaintext mathematics, not simple loops.");
+                System.out.println("Returning to menu...");
+
+            } else if (choice == 4) {
+                System.out.println("Exiting program... Goodbye!");
+            } else {
+                System.out.println("Invalid choice! Please choose 1, 2, 3, or 4.");
+            }
+        }
+        
+        scanner.close(); 
+    }
+
+
+    public static boolean isLowercaseOnly(String text) {
+        if (text.length() == 0) return false; 
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c < 'a' || c > 'z') return false; 
+        }
+        return true; 
+    }
+
+    public static boolean isUppercaseOnly(String text) {
+        if (text.length() == 0) return false; 
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c < 'A' || c > 'Z') return false;
+        }
+        return true;
+    }
+
+    public static int getDeterminant(int k1, int k2, int k3, int k4) {
+        int det = (k1 * k4) - (k2 * k3);
+        det = ((det % 26) + 26) % 26;
+        return det;
+    }
+
+    public static boolean isValidMatrix(int k1, int k2, int k3, int k4) {
+        int det = getDeterminant(k1, k2, k3, k4);
+        if (det == 0 || det % 2 == 0 || det % 13 == 0) {
+            return false;
+        }
+        return true;
+    }
+
+    public static int findInverseKey(int det) {
+        int inverse = 1;
+        for (int i = 1; i < 26; i++) {
+            if ((det * i) % 26 == 1) {
+                inverse = i;
+                break;
+            }
+        }
+        return inverse;
+    }
+}
